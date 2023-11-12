@@ -10,9 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(viewModel: SharedViewModel) {
     var textInput by remember { mutableStateOf("") }
-    var itemList by remember { mutableStateOf(listOf("mela", "frutta di guscio", "pera")) } // Mock list
+    var itemList by remember { mutableStateOf(viewModel.itemList) } // Mock list
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -30,6 +30,7 @@ fun SettingsScreen() {
                 if (textInput.isNotBlank()) {
                     itemList = itemList + textInput
                     textInput = ""
+                    viewModel.updateList(itemList)
                 }
             },
             modifier = Modifier.padding(16.dp)

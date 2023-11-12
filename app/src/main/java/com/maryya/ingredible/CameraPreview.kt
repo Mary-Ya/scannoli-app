@@ -13,15 +13,39 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 
 @Composable
-fun CameraPreview(modifier: Modifier = Modifier) {
+
+fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedViewModel) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var recognizedWords by remember { mutableStateOf("") }
 
-    // Check for camera permission
+    val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { words ->
+        val matches = words.filter { viewModel.itemList.contains(it.lowercase()) }
+        if (matches.isNotEmpty()) {
+            recognizedWords = matches
+        }
+    } }
+
+    LaunchedEffect(isOCRActive) {
+        ocrHandler.isActive = isOCRActive
+    }
+
+    val imageAnalysis = remember {
+        ImageAnalysis.Builder()
+            .build()
+            .also { analysisUseCase ->
+                analysisUseCase.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+                    ocrHandler.processImageProxy(imageProxy)
+                }
+            }
+    }
+
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-        // Permission is granted, show the camera preview
         AndroidView(
             modifier = modifier,
             factory = { ctx ->
@@ -35,16 +59,22 @@ fun CameraPreview(modifier: Modifier = Modifier) {
 
                     try {
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis) // Include imageAnalysis
                     } catch (exc: Exception) {
-                        // Handle any errors (for example, if the camera is in use)
+                        // Handle any errors
                     }
                 }, ContextCompat.getMainExecutor(ctx))
 
                 previewView
-            },
+            }
         )
     } else {
-        // Permission is not granted, handle this case
+        // Handle missing permission
+    }
+
+    // Optionally display recognized words
+    if (recognizedWords.isNotEmpty()) {
+        Text(text = recognizedWords)
+        // Reset logic after a delay, if needed
     }
 }

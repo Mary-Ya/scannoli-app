@@ -2,7 +2,9 @@ package com.maryya.ingredible
 
 import CameraPreview
 import SettingsScreen
+import SharedViewModel
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -20,31 +22,37 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
+            val viewModel = viewModel<SharedViewModel>() // Create ViewModel instance
+
             NavHost(navController = navController, startDestination = "mainScreen") {
-                composable("mainScreen") { MainScreen(navController) }
-                composable("settingsScreen") { SettingsScreen() }
+                composable("mainScreen") { MainScreen(navController, viewModel) }
+                composable("settingsScreen") { SettingsScreen(viewModel) }
             }
         }
     }
 
     @Composable
-    fun MainScreen(navController: NavController) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CameraPreview(modifier = Modifier.fillMaxSize()) // Camera view as background
+    fun MainScreen(navController: NavController, viewModel: SharedViewModel) {
+        var isOCRActive by remember { mutableStateOf(false) }
 
-        CameraView() // Placeholder for camera view
+        Box(modifier = Modifier.fillMaxSize()) {
+            CameraPreview(modifier = Modifier.fillMaxSize(), isOCRActive = isOCRActive, viewModel = viewModel) // Camera view as background
             Spacer(modifier = Modifier.height(16.dp))
 
             // Gear (Settings) button at the top right
@@ -62,7 +70,11 @@ class MainActivity : ComponentActivity() {
             // Eye button at the bottom center
             // Adjusted alignment for bottom center
             IconButton(
-                onClick = { /* TODO: Handle eye click */ },
+                onClick = {
+                    Log.d("Eye Click", "OCR Active: $isOCRActive")
+
+                    isOCRActive = !isOCRActive
+                          },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 48.dp)
@@ -72,21 +84,6 @@ class MainActivity : ComponentActivity() {
                 Icon(Icons.Filled.Visibility, contentDescription = "Visibility", tint = Color.White, modifier = Modifier.size(32.dp)  // Increase icon size
                 )
             }
-        }
-    }
-
-    @Composable
-    fun CameraView() {
-        // Placeholder for camera view
-        // You'll replace this with actual CameraX implementation
-        Box(
-            modifier = Modifier
-                .height(300.dp)
-                .fillMaxWidth()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Camera Preview")
         }
     }
 }
