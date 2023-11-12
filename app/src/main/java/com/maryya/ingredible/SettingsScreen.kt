@@ -1,9 +1,11 @@
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,7 +14,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsScreen(viewModel: SharedViewModel) {
     var textInput by remember { mutableStateOf("") }
-    var itemList by remember { mutableStateOf(viewModel.itemList) } // Mock list
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -28,9 +29,8 @@ fun SettingsScreen(viewModel: SharedViewModel) {
         FloatingActionButton(
             onClick = {
                 if (textInput.isNotBlank()) {
-                    itemList = itemList + textInput
+                    viewModel.updateList(viewModel.itemList + textInput)
                     textInput = ""
-                    viewModel.updateList(itemList)
                 }
             },
             modifier = Modifier.padding(16.dp)
@@ -39,16 +39,23 @@ fun SettingsScreen(viewModel: SharedViewModel) {
         }
 
         LazyColumn {
-            items(itemList) { item ->
-                Text(text = item, modifier = Modifier.padding(16.dp))
-            }
-        }
+            itemsIndexed(viewModel.itemList) { index, item ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = item, modifier = Modifier.weight(1f).padding(8.dp))
 
-        Button(
-            onClick = { /* TODO: Handle Save Action */ },
-            modifier = Modifier.align(Alignment.End).padding(16.dp)
-        ) {
-            Text("Save")
+                    IconButton(onClick = {
+                        // Remove item from the list
+                        viewModel.updateList(viewModel.itemList.toMutableList().apply {
+                            removeAt(index)
+                        })
+                    }) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Remove")
+                    }
+                }
+            }
         }
     }
 }
