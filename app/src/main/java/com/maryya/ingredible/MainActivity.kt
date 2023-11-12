@@ -1,6 +1,7 @@
 package com.maryya.ingredible
 
 import CameraPreview
+import SettingsScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,17 +22,25 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen()
+            val navController = rememberNavController()
+            NavHost(navController = navController, startDestination = "mainScreen") {
+                composable("mainScreen") { MainScreen(navController) }
+                composable("settingsScreen") { SettingsScreen() }
+            }
         }
     }
 
     @Composable
-    fun MainScreen() {
+    fun MainScreen(navController: NavController) {
         Box(modifier = Modifier.fillMaxSize()) {
             CameraPreview(modifier = Modifier.fillMaxSize()) // Camera view as background
 
@@ -40,7 +49,7 @@ class MainActivity : ComponentActivity() {
 
             // Gear (Settings) button at the top right
             IconButton(
-                onClick = { /* TODO: Handle settings click */ },
+                onClick = { navController.navigate("settingsScreen") },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 24.dp, end = 24.dp)
