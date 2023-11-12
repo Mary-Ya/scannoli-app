@@ -22,6 +22,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -81,7 +82,10 @@ class MainActivity : ComponentActivity() {
                     .background(color = Color.DarkGray, shape = CircleShape)
                     .padding(16.dp)  // Increase inner padding to make the button larger
             ) {
-                Icon(Icons.Filled.Visibility, contentDescription = "Visibility", tint = Color.White, modifier = Modifier.size(32.dp)  // Increase icon size
+                Icon(
+                    imageVector = if (isOCRActive) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                    contentDescription = if (isOCRActive) "Stop OCR" else "Start OCR",
+                    tint = Color.White
                 )
             }
         }

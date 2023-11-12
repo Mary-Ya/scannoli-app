@@ -25,10 +25,18 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     var recognizedWords by remember { mutableStateOf("") }
 
     val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { words ->
-        val matches = words.filter { viewModel.itemList.contains(it.lowercase()) }
-        if (matches.isNotEmpty()) {
-            recognizedWords = matches
+        // Find matches
+        val splitWords = words.split("\\s+".toRegex())
+
+        val matches = viewModel.itemList.filter { item ->
+            splitWords.any { word ->
+                word == item
+            }
         }
+        if (matches.isNotEmpty()) {
+            recognizedWords = matches.joinToString(", ")
+        }
+
     } }
 
     LaunchedEffect(isOCRActive) {

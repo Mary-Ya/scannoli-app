@@ -10,6 +10,8 @@ import java.util.concurrent.Executor
 
 class OCRHandler(private val executor: Executor, private val onTextRecognized: (String) -> Unit) {
     private val recognizer: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private var lastAnalyzedTimestamp = 0L
+    private val analyzerDelay = 500L // Delay in milliseconds (0.5 seconds)
 
     // Function to process the image for OCR
     var isActive: Boolean = false  // Add this line
@@ -18,10 +20,13 @@ class OCRHandler(private val executor: Executor, private val onTextRecognized: (
     fun processImageProxy(imageProxy: ImageProxy) {
         Log.d("OCRHandler", "Processing image, isActive: $isActive")
 
-        if (!isActive) {
+        val currentTimestamp = System.currentTimeMillis()
+        if (!isActive || (currentTimestamp - lastAnalyzedTimestamp) < analyzerDelay) {
             imageProxy.close()
             return
         }
+
+        lastAnalyzedTimestamp = currentTimestamp
 
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
