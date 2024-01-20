@@ -1,11 +1,16 @@
 import android.Manifest
 import android.content.pm.PackageManager
+import android.hardware.camera2.CaptureRequest
 import android.os.Bundle
 import android.util.Size
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -15,6 +20,10 @@ import androidx.fragment.app.FragmentActivity
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
@@ -25,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+
+@Suppress("OPT_IN_ARGUMENT_IS_NOT_MARKER")
+@OptIn(ExperimentalCamera2Interop::class)
+@ExperimentalCamera2Interop
 @Composable
 fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedViewModel) {
     val context = LocalContext.current
@@ -77,7 +90,7 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
 
                     try {
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis) // Include imageAnalysis
+                        cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis)
                     } catch (exc: Exception) {
                         // Handle any errors
                     }
@@ -89,18 +102,39 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     } else {
         // Handle missing permission
     }
+    // Display each recognized word as a separate pill
+    LazyColumn {
+        items(recognizedWordsSet.toList()) { word ->
+            val index = recognizedWordsSet.toList().indexOf(word)
+            val prevWord = recognizedWordsSet.elementAtOrNull(index - 1) ?: ""
+            val nextWord = recognizedWordsSet.elementAtOrNull(index + 1) ?: ""
+            WordPill(word, prevWord, nextWord, viewModel)
+        }
+    }
 
-    // Optionally display recognized words
-    if (displayWords.isNotEmpty()) {
-        Text(text = displayWords,
-            modifier = Modifier
-                .padding(16.dp)  // Add some padding
-                .background(Color.Black.copy(alpha = 0.7f))  // Semi-transparent black background
-                .padding(8.dp),  // Padding inside the background
-            color = Color.White,
-            fontSize = 20.sp,  // Larger font size
-            fontWeight = FontWeight.Bold, // Bold font weight
-     )
-        // Reset logic after a delay, if needed
+}
+@Composable
+fun WordPill(currentWord: String, prevWord: String, nextWord: String, viewModel: SharedViewModel) {
+    val color = viewModel.colorList.random().copy(alpha = 0.7f)
+
+    // Display previous, current, and next words
+    Row(modifier = Modifier.padding(8.dp)) {
+        Text(
+            text = prevWord,
+            modifier = Modifier.background(color.copy(alpha = 0.3f), RoundedCornerShape(50)),
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = currentWord,
+            modifier = Modifier.background(color, RoundedCornerShape(50)),
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = nextWord,
+            modifier = Modifier.background(color.copy(alpha = 0.3f), RoundedCornerShape(50)),
+            color = Color.White
+        )
     }
 }
