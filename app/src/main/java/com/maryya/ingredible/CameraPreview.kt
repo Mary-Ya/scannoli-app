@@ -35,6 +35,8 @@ import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlin.math.max
+import kotlin.math.min
 
 
 @Suppress("OPT_IN_ARGUMENT_IS_NOT_MARKER")
@@ -48,9 +50,12 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     var recognizedWordsSet by remember { mutableStateOf(setOf<String>()) }
     var displayWords by remember { mutableStateOf("") }
 
-    val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { recognizedText ->
+    var recognizedText by remember { mutableStateOf("") } // To store the full recognized text
+
+    val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { newText ->
+        recognizedText = newText // Update the recognized text
         val matches = viewModel.itemList.filter { item ->
-            recognizedText.lowercase().contains(item.lowercase())
+            newText.lowercase().contains(item.lowercase())
         }.toSet()
 
         if (matches.isNotEmpty()) {
@@ -107,23 +112,36 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     // Display each recognized word as a separate pill
     LazyColumn {
         items(recognizedWordsSet.toList()) { word ->
-            val index = recognizedWordsSet.toList().indexOf(word)
-            val prevWord = recognizedWordsSet.elementAtOrNull(index - 1) ?: ""
-            val nextWord = recognizedWordsSet.elementAtOrNull(index + 1) ?: ""
-            WordPill(word, prevWord, nextWord, viewModel)
+            // Ensure 'word' is not null
+            word?.let {
+                val wordIndex = recognizedText.indexOf(word)
+                if (wordIndex != -1) {
+                    val prevTextStart = max(wordIndex - 10, 0)
+                    val prevText = recognizedText.substring(prevTextStart, wordIndex)
+
+                    val nextTextIndex = wordIndex + word.length
+                    val nextTextEnd = min(nextTextIndex + 10, recognizedText.length)
+                    val nextText = recognizedText.substring(nextTextIndex, nextTextEnd)
+
+                    WordPill(word, prevText, nextText, viewModel)
+                }
+            }
         }
     }
-
 }
 @Composable
-fun WordPill(currentWord: String, prevWord: String, nextWord: String, viewModel: SharedViewModel) {
-    val color = viewModel.colorList.random().copy(alpha = 0.7f)
+fun WordPill(currentWord: String, prevText: String, nextText: String, viewModel: SharedViewModel) {
+    val color = viewModel.getColorForItem(currentWord)
+
+    val safeCurrentWord = currentWord ?: ""
+    val safePrevText = prevText ?: ""
+    val safeNextText = nextText ?: ""
 
     // Display previous, current, and next words
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Row(modifier = Modifier.padding(8.dp)) {
             Text(
-                text = prevWord,
+                text = safePrevText,
                 modifier = Modifier
                     .background(color.copy(alpha = 0.3f), RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -132,7 +150,7 @@ fun WordPill(currentWord: String, prevWord: String, nextWord: String, viewModel:
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = currentWord,
+                text = safeCurrentWord,
                 modifier = Modifier
                     .background(color, RoundedCornerShape(50.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -141,7 +159,7 @@ fun WordPill(currentWord: String, prevWord: String, nextWord: String, viewModel:
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = nextWord,
+                text = safeNextText,
                 modifier = Modifier
                     .background(color.copy(alpha = 0.3f), RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),

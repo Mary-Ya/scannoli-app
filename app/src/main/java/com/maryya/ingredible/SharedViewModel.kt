@@ -2,6 +2,7 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 
@@ -38,5 +39,23 @@ class SharedViewModel : ViewModel() {
     fun updateList(newList: List<String>) {
         itemList.clear()
         itemList.addAll(newList)
+    }
+
+
+    // Map to store the color for each item
+    var itemColorMap = mutableStateMapOf<String, Color>()
+
+    init {
+        initializeColorMap()
+    }
+
+    private fun initializeColorMap() {
+        itemList.forEachIndexed { index, item ->
+            itemColorMap[item] = colorList[index % colorList.size]
+        }
+    }
+
+    fun getColorForItem(item: String): Color {
+        return itemColorMap[item] ?: Color.Gray // Default color if not found
     }
 }
