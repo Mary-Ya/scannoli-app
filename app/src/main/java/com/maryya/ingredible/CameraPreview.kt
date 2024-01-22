@@ -9,6 +9,7 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.toLowerCase
@@ -118,23 +120,34 @@ fun WordPill(currentWord: String, prevWord: String, nextWord: String, viewModel:
     val color = viewModel.colorList.random().copy(alpha = 0.7f)
 
     // Display previous, current, and next words
-    Row(modifier = Modifier.padding(8.dp)) {
-        Text(
-            text = prevWord,
-            modifier = Modifier.background(color.copy(alpha = 0.3f), RoundedCornerShape(50)),
-            color = Color.White
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = currentWord,
-            modifier = Modifier.background(color, RoundedCornerShape(50)),
-            color = Color.White
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = nextWord,
-            modifier = Modifier.background(color.copy(alpha = 0.3f), RoundedCornerShape(50)),
-            color = Color.White
-        )
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Row(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = prevWord,
+                modifier = Modifier
+                    .background(color.copy(alpha = 0.3f), RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                color = Color.White,
+                fontSize = 15.sp // Adjust font size as needed
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = currentWord,
+                modifier = Modifier
+                    .background(color, RoundedCornerShape(50.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                color = Color.White,
+                fontSize = 22.5.sp // Larger font for the current word
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = nextWord,
+                modifier = Modifier
+                    .background(color.copy(alpha = 0.3f), RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                color = Color.White,
+                fontSize = 15.sp // Adjust font size as needed
+            )
+        }
     }
 }
