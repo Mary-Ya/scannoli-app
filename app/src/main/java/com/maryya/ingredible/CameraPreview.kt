@@ -47,12 +47,26 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    var ocrActive by remember { mutableStateOf(false) }
+    var statusText by remember { mutableStateOf("OCR is deactivated") }
     var recognizedWordsSet by remember { mutableStateOf(setOf<String>()) }
+
     var displayWords by remember { mutableStateOf("") }
 
     var recognizedText by remember { mutableStateOf("") } // To store the full recognized text
 
+    // Toggle OCR activation and update status text
+    fun toggleOCR() {
+        ocrActive = !ocrActive
+        statusText = if (ocrActive) "OCR is activated" else "OCR is deactivated"
+        if (!ocrActive) {
+            recognizedWordsSet = emptySet() // Reset when OCR is deactivated
+        }
+    }
+
     val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { newText ->
+        statusText = "Text recognition is started"
+
         recognizedText = newText // Update the recognized text
         val matches = viewModel.itemList.filter { item ->
             newText.lowercase().contains(item.lowercase())
@@ -66,11 +80,13 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
 
     LaunchedEffect(isOCRActive) {
         ocrHandler.isActive = isOCRActive
+
         if (!isOCRActive) {
             // Delay to clear the list after the eye button is released
             delay(1000)
             recognizedWordsSet = emptySet()
             displayWords = ""
+            statusText = "OCR is not active"
         }
     }
     val imageAnalysis = remember {
@@ -82,6 +98,8 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
                 }
             }
     }
+
+
 
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
         AndroidView(
@@ -128,6 +146,22 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
             }
         }
     }
+
+    // Status text Composable
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp), // Add padding to ensure the text is not right at the edge
+        contentAlignment = Alignment.BottomCenter // Aligns the content to the bottom center
+    ) {
+        Text(
+            text = statusText,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+
 }
 @Composable
 fun WordPill(currentWord: String, prevText: String, nextText: String, viewModel: SharedViewModel) {
