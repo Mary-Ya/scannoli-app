@@ -35,9 +35,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.maryya.ingredible.WordPill
 import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.math.min
+
+data class WordTriple(val prevWord: String, val word: String, val nextWord: String)
 
 
 @Suppress("OPT_IN_ARGUMENT_IS_NOT_MARKER")
@@ -48,35 +51,30 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var ocrActive by remember { mutableStateOf(false) }
     var statusText by remember { mutableStateOf("OCR is deactivated") }
-    var recognizedWordsSet by remember { mutableStateOf(setOf<String>()) }
-
-    var displayWords by remember { mutableStateOf("") }
-
-    var recognizedText by remember { mutableStateOf("") } // To store the full recognized text
-
-    // Toggle OCR activation and update status text
-    fun toggleOCR() {
-        ocrActive = !ocrActive
-        statusText = if (ocrActive) "OCR is activated" else "OCR is deactivated"
-        if (!ocrActive) {
-            recognizedWordsSet = emptySet() // Reset when OCR is deactivated
-        }
-    }
+    val recognizedWordsSet = remember { mutableSetOf<WordTriple>() }
 
     val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { newText ->
         statusText = "Text recognition is started"
 
-        recognizedText = newText // Update the recognized text
         val matches = viewModel.itemList.filter { item ->
             newText.lowercase().contains(item.lowercase())
-        }.toSet()
-
-        if (matches.isNotEmpty()) {
-            recognizedWordsSet = recognizedWordsSet.union(matches)
-            displayWords = recognizedWordsSet.joinToString(", ")
         }
+
+        matches.forEach { match ->
+            val wordIndex = newText.lowercase().indexOf(match.lowercase())
+            if (wordIndex != -1) {
+                val prevTextStart = max(wordIndex - 10, 0)
+                val prevText = newText.substring(prevTextStart, wordIndex)
+
+                val nextTextIndex = wordIndex + match.length
+                val nextTextEnd = min(nextTextIndex + 10, newText.length)
+                val nextText = newText.substring(nextTextIndex, nextTextEnd)
+
+                recognizedWordsSet.add(WordTriple(prevText, match, nextText))
+            }
+        }
+
     }}
 
     LaunchedEffect(isOCRActive) {
@@ -85,8 +83,7 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
         if (!isOCRActive) {
             // Delay to clear the list after the eye button is released
             delay(1000)
-            recognizedWordsSet = emptySet()
-            displayWords = ""
+            recognizedWordsSet.clear()
             statusText = "OCR is not active"
         }
     }
@@ -130,30 +127,21 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     }
     // Display each recognized word as a separate pill
     LazyColumn {
-        items(recognizedWordsSet.toList()) { word ->
+        items(recognizedWordsSet.toList()) { wordTriple ->
             // Ensure 'word' is not null
-            word?.let {
-                val wordIndex = recognizedText.indexOf(word)
-                if (wordIndex != -1) {
-                    val prevTextStart = max(wordIndex - 10, 0)
-                    val prevText = recognizedText.substring(prevTextStart, wordIndex)
-
-                    val nextTextIndex = wordIndex + word.length
-                    val nextTextEnd = min(nextTextIndex + 10, recognizedText.length)
-                    val nextText = recognizedText.substring(nextTextIndex, nextTextEnd)
-
-                    WordPill(word, prevText, nextText, viewModel)
+            wordTriple?.let {
+                    WordPill(wordTriple, viewModel)
                 }
             }
         }
-    }
+
 
     // Status text Composable
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp), // Add padding to ensure the text is not right at the edge
-        contentAlignment = Alignment.BottomCenter // Aligns the content to the bottom center
+        contentAlignment = Alignment.BottomCenter // Aligns the content to the bottom center mela u
     ) {
         Text(
             text = statusText,
@@ -161,55 +149,5 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
-    }
-
-}
-@Composable
-fun WordPill(currentWord: String, prevText: String, nextText: String, viewModel: SharedViewModel) {
-    val color = viewModel.getColorForItem(currentWord)
-
-    val safeCurrentWord = currentWord ?: ""
-    val safePrevText = prevText ?: ""
-    val safeNextText = nextText ?: ""
-
-    // Display previous, current, and next words
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Row(modifier = Modifier.padding(8.dp)) {
-            Text(
-                text = safePrevText,
-                maxLines = 1, // Ensures text is one line
-                overflow = TextOverflow.Visible, // Text will be truncated with an ellipsis if it overflows
-
-                modifier = Modifier
-                    .background(color.copy(alpha = 0.3f), RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = Color.White,
-                fontSize = 15.sp // Adjust font size as needed
-
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = safeCurrentWord,
-                maxLines = 1, // Ensures text is one line
-                overflow = TextOverflow.Visible, // Text will be truncated with an ellipsis if it overflows
-
-                modifier = Modifier
-                    .background(color, RoundedCornerShape(50.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = Color.White,
-                fontSize = 22.5.sp // Larger font for the current word
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = safeNextText,
-                maxLines = 1, // Ensures text is one line
-                overflow = TextOverflow.Visible,
-                modifier = Modifier
-                    .background(color.copy(alpha = 0.3f), RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = Color.White,
-                fontSize = 15.sp // Adjust font size as needed
-            )
-        }
     }
 }
