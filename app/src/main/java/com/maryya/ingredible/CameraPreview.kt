@@ -31,6 +31,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -176,15 +177,22 @@ fun WordPill(currentWord: String, prevText: String, nextText: String, viewModel:
         Row(modifier = Modifier.padding(8.dp)) {
             Text(
                 text = safePrevText,
+                maxLines = 1, // Ensures text is one line
+                overflow = TextOverflow.Visible, // Text will be truncated with an ellipsis if it overflows
+
                 modifier = Modifier
                     .background(color.copy(alpha = 0.3f), RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 color = Color.White,
                 fontSize = 15.sp // Adjust font size as needed
+
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = safeCurrentWord,
+                maxLines = 1, // Ensures text is one line
+                overflow = TextOverflow.Visible, // Text will be truncated with an ellipsis if it overflows
+
                 modifier = Modifier
                     .background(color, RoundedCornerShape(50.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -194,6 +202,8 @@ fun WordPill(currentWord: String, prevText: String, nextText: String, viewModel:
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = safeNextText,
+                maxLines = 1, // Ensures text is one line
+                overflow = TextOverflow.Visible,
                 modifier = Modifier
                     .background(color.copy(alpha = 0.3f), RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp),
