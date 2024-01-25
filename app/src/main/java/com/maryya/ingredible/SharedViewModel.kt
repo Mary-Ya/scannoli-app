@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 
 class SharedViewModel : ViewModel() {
-    var itemList = mutableStateListOf(
+    var initialList = listOf(
         "mela", "mele", // Apple, Apples
         "pesca", "pesche", // Peach, Peaches
         "pera", "pere", // Pear, Pears
@@ -24,12 +24,20 @@ class SharedViewModel : ViewModel() {
         "marzapane", // Marzipan
         "nutella" // Nutella
     )
+
+    var itemList = mutableStateListOf<String>()
         private set
+
+    fun resetList() {
+        itemList.clear()
+        itemList.addAll(initialList)
+    }
 
     fun updateList(newList: List<String>) {
         itemList.clear()
         itemList.addAll(newList)
     }
+
     private var colorList = mutableStateListOf(
         Color(android.graphics.Color.parseColor("#645AD4")), // Violet
         Color(android.graphics.Color.parseColor("#7F00CC")), // Purple
@@ -53,5 +61,6 @@ class SharedViewModel : ViewModel() {
 
     init {
         initializeColorMap()
+        resetList()
     }
 }

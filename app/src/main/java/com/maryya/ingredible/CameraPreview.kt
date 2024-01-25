@@ -1,40 +1,27 @@
 import android.Manifest
 import android.content.pm.PackageManager
-import android.hardware.camera2.CaptureRequest
-import android.os.Bundle
-import android.util.Size
-import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import com.maryya.ingredible.StatusVm
 import com.maryya.ingredible.WordPill
 import kotlinx.coroutines.delay
 import kotlin.math.max
@@ -44,7 +31,6 @@ data class WordTriple(val prevWord: String, val word: String, val nextWord: Stri
 
 
 @Suppress("OPT_IN_ARGUMENT_IS_NOT_MARKER")
-@OptIn(ExperimentalCamera2Interop::class)
 @ExperimentalCamera2Interop
 @Composable
 fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedViewModel) {
@@ -52,7 +38,11 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var statusText by remember { mutableStateOf("OCR is deactivated") }
-    val recognizedWordsSet = remember { mutableSetOf<WordTriple>() }
+    val recognizedWordsSet = remember { mutableStateOf(setOf<WordTriple>()) }
+
+    if(!isOCRActive) {
+        viewModel.resetList()
+    }
 
     val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { newText ->
         statusText = "Text recognition is started"
@@ -60,7 +50,7 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
         val matches = viewModel.itemList.filter { item ->
             newText.lowercase().contains(item.lowercase())
         }
-
+        viewModel.itemList.removeAll(matches)
         matches.forEach { match ->
             val wordIndex = newText.lowercase().indexOf(match.lowercase())
             if (wordIndex != -1) {
@@ -70,8 +60,9 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
                 val nextTextIndex = wordIndex + match.length
                 val nextTextEnd = min(nextTextIndex + 10, newText.length)
                 val nextText = newText.substring(nextTextIndex, nextTextEnd)
+                val newTriple = WordTriple(prevText, match, nextText)
 
-                recognizedWordsSet.add(WordTriple(prevText, match, nextText))
+                recognizedWordsSet.value = recognizedWordsSet.value + newTriple
             }
         }
 
@@ -81,9 +72,9 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
         ocrHandler.isActive = isOCRActive
 
         if (!isOCRActive) {
-            // Delay to clear the list after the eye button is released
+            // Delay to clear the list after the eye button is released mela something
             delay(1000)
-            recognizedWordsSet.clear()
+            recognizedWordsSet.value = emptySet()
             statusText = "OCR is not active"
         }
     }
@@ -125,9 +116,9 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     } else {
         // Handle missing permission
     }
-    // Display each recognized word as a separate pill
+    // Display each recognized word as a separate pill noci pera 855
     LazyColumn {
-        items(recognizedWordsSet.toList()) { wordTriple ->
+        items(recognizedWordsSet.value.toList()) { wordTriple ->
             // Ensure 'word' is not null
             wordTriple?.let {
                     WordPill(wordTriple, viewModel)
@@ -135,19 +126,6 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
             }
         }
 
+    StatusVm(statusText)
 
-    // Status text Composable
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp), // Add padding to ensure the text is not right at the edge
-        contentAlignment = Alignment.BottomCenter // Aligns the content to the bottom center mela u
-    ) {
-        Text(
-            text = statusText,
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
 }
