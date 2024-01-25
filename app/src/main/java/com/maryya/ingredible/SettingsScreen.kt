@@ -29,7 +29,7 @@ fun SettingsScreen(viewModel: SharedViewModel) {
         FloatingActionButton(
             onClick = {
                 if (textInput.isNotBlank()) {
-                    viewModel.updateList(viewModel.itemList + textInput)
+                    viewModel.updateList(textInput)
                     textInput = ""
                 }
             },
@@ -48,9 +48,7 @@ fun SettingsScreen(viewModel: SharedViewModel) {
 
                     IconButton(onClick = {
                         // Remove item from the list
-                        viewModel.updateList(viewModel.itemList.toMutableList().apply {
-                            removeAt(index)
-                        })
+                        viewModel.removeItemFromList(index)
                     }) {
                         Icon(Icons.Filled.Delete, contentDescription = "Remove")
                     }

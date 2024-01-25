@@ -33,9 +33,14 @@ class SharedViewModel : ViewModel() {
         itemList.addAll(initialList)
     }
 
-    fun updateList(newList: List<String>) {
-        itemList.clear()
-        itemList.addAll(newList)
+    fun updateList(newItem: String) {
+        itemList.add(newItem)
+    }
+
+    fun removeItemFromList(index: Int) {
+        itemList.toMutableList().apply {
+            removeAt(index)
+        }
     }
 
     private var colorList = mutableStateListOf(
@@ -60,7 +65,7 @@ class SharedViewModel : ViewModel() {
     }
 
     init {
-        initializeColorMap()
         resetList()
+        initializeColorMap()
     }
 }
