@@ -45,11 +45,13 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
     }
 
     val ocrHandler = remember { OCRHandler(ContextCompat.getMainExecutor(context)) { newText ->
-        statusText = "Text recognition is started"
+        statusText = "Text recognition is started" // mela pera
 
         val matches = viewModel.itemList.filter { item ->
-            newText.lowercase().contains(item.lowercase())
+            val regexPattern = "\\b${Regex.escape(item)}\\b"
+            newText.contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
         }
+
         viewModel.itemList.removeAll(matches)
         matches.forEach { match ->
             val wordIndex = newText.lowercase().indexOf(match.lowercase())
@@ -127,5 +129,4 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
         }
 
     StatusVm(statusText)
-
 }
