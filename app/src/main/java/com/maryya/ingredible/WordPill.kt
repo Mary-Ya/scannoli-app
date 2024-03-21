@@ -1,6 +1,5 @@
 package com.maryya.ingredible
 
-import SharedViewModel
 import WordTriple
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

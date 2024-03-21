@@ -2,7 +2,7 @@ package com.maryya.ingredible
 
 import CameraPreview
 import SettingsScreen
-import SharedViewModel
+import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -10,13 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -27,12 +24,12 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @ExperimentalCamera2Interop class MainActivity : ComponentActivity() {
@@ -40,7 +37,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            val viewModel = viewModel<SharedViewModel>() // Create ViewModel instance
+            val factory = SharedViewModelFactory(LocalContext.current.applicationContext as Application);
+            val viewModel: SharedViewModel = viewModel(factory = factory)
 
             NavHost(navController = navController, startDestination = "mainScreen") {
                 composable("mainScreen") { MainScreen(navController, viewModel) }

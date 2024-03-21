@@ -3,12 +3,13 @@ import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.util.concurrent.Executor
 
-class OCRHandler(private val executor: Executor, private val onTextRecognized: (String) -> Unit) {
+class OCRHandler(private val executor: Executor, private val onTextRecognized: (Text) -> Unit) {
     private val recognizer: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     private var lastAnalyzedTimestamp = 0L
     private val analyzerDelay = 500L // Delay in milliseconds (0.5 seconds)
@@ -33,7 +34,7 @@ class OCRHandler(private val executor: Executor, private val onTextRecognized: (
             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
             recognizer.process(image)
                 .addOnSuccessListener { visionText ->
-                    onTextRecognized(visionText.text)
+                    onTextRecognized(visionText)
                 }
                 .addOnFailureListener {
                     // Handle any errors
