@@ -27,12 +27,35 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     private val itemDao = db.itemDao()
     private val itemListDao = db.itemListDao()
 
-    val itemRepository = ItemRepository(itemListDao)
-    // Example function to insert an item with logging
-    fun insertItem(item: Item) = viewModelScope.launch {
+    private val _listsLiveData = MutableLiveData<List<ItemList>>()
+    val listsLiveData: LiveData<List<ItemList>> = _listsLiveData
+
+
+    // LiveData to observe items
+    private val _itemsLiveData = MutableLiveData<List<Item>>()
+    val itemsLiveData: LiveData<List<Item>> = _itemsLiveData
+
+    fun insertItem(item: Item) = viewModelScope.launch(Dispatchers.IO) {
         Log.d("AppDatabase", "Inserting item: ${item.name}")
         itemDao.insertItem(item)
         Log.d("AppDatabase", "Item inserted")
+    }
+
+    val itemRepository = ItemRepository(itemListDao)
+    // Example function to insert an item with logging
+    fun updateList(newItem: String) {
+        itemList.add(newItem)
+        viewModelScope.launch {
+            Log.d("Debug111", "Before calling getAllLists")
+            try {
+                withContext(Dispatchers.IO) {
+                    val item = Item(name = newItem, listOwnerId=0)
+                    itemDao.insertItem(item) // Corrected method name
+                }
+            } catch  (e: Exception) {
+                Log.e("DatabaseError", "Error accessing database", e)
+            }
+        }
     }
 
     // Function to get items for a list, showing usage of the DAO within a ViewModel
@@ -42,6 +65,13 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     var selectedListId by mutableStateOf(0)
+        private set
+    // Change the method name to avoid the clash
+    fun updateSelectedListId(id: Int) {
+        selectedListId = id
+        loadItemsForSelectedList()
+    }
+
     var initialList = listOf(
         "mela", "mele", // Apple, Apples
         "pesca", "pesche", // Peach, Peaches
@@ -68,13 +98,19 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         itemList.addAll(initialList)
     }
 
-    fun updateList(newItem: String) {
-        itemList.add(newItem)
-    }
-
     fun removeItemFromList(index: Int) {
-        itemList.toMutableList().apply {
-            removeAt(index)
+        viewModelScope.launch {
+            Log.d("Debug111", "Before calling getAllLists")
+            try {
+                withContext(Dispatchers.IO) {
+                    itemDao.deleteItem(Item(name = itemList.elementAt(index), listOwnerId = 0))
+                }
+                itemList.toMutableList().apply {
+                    removeAt(index)
+                }}
+            catch  (e: Exception) {
+                Log.e("DatabaseError", "Error accessing database", e)
+            }
         }
     }
 
@@ -101,47 +137,82 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     private val _allItemLists = MutableLiveData<List<ItemList>>()
     val allItemLists: LiveData<List<ItemList>> = _allItemLists
 
-    private fun loadList() {
-        var lists: List<ItemList> = emptyList()
+    enum class LoadListOperation {
+        CREATE_NEW,
+        POPULATE_EXISTING,
+        LOAD_EXISTING
+    }
 
-        viewModelScope.launch {
-            Log.d("Debug111", "Before calling getAllLists")
-//            val lists = itemListDao.getAllLists()
-            try {
-                withContext(Dispatchers.IO) {
-                    lists = itemListDao.getAllLists()
+    private fun loadItemsForSelectedList() = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            val items = itemDao.getItemsForList(selectedListId)
+            withContext(Dispatchers.Main) {
+                _itemsLiveData.value = items
+            }
+        } catch (e: Exception) {
+            Log.e("DatabaseError", "Error loading items", e)
+        }
+    }
 
-                    // Other database operations...
+    fun removeItemFromList(item: Item) = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            itemDao.deleteItem(item)
+            loadItemsForSelectedList() // Refresh items list
+        } catch (e: Exception) {
+            Log.e("DatabaseError", "Error removing item", e)
+        }
+    }
+    private fun loadList() = viewModelScope.launch(Dispatchers.IO) {
+        Log.d("Debug111", "Before calling getAllLists")
+        try {
+            var lists = itemListDao.getAllLists()
 
-                    if (lists.isEmpty()) {
-                        // No lists in DB, create one and use its ID as selectedListId
-                        val newListId =
-                            itemListDao.insertList(ItemList(name = "Default List", listId = 0))
-                        selectedListId = newListId.toInt()
-                        // Populate the new list with initial items
-                        initialList.forEach { item ->
-                            itemDao.insertItem(Item(name = item, listOwnerId = selectedListId))
-                        }
-                    } else {
-                        // Use the first list as the default list
-                        selectedListId = lists[0].listId
-                        val items = itemDao.getItemsForList(selectedListId)
-                        if (items.isEmpty()) {
-                            // If the selected list is empty, populate it with initial items
-                            initialList.forEach { item ->
-                                itemDao.insertItem(Item(name = item, listOwnerId = selectedListId))
-                            }
-                        } else {
-                            // Load items from the selected list
-                            itemList.clear()
-                            itemList.addAll(items.map { it.name })
-                        }
+            val operation: LoadListOperation
+            val itemsForSelectedList: List<Item>?
+
+            if (lists.isEmpty()) {
+                // If no lists in DB, create a new one and prepare its ID
+                val newListId = itemListDao.insertList(ItemList(name = "Default List", listId = 0))
+                operation = LoadListOperation.CREATE_NEW
+                // Since this is a new list, there are no items yet
+                itemsForSelectedList = null
+            } else {
+                // Lists are present, use the first list's ID as selected
+                val selectedListIdTemp = lists[0].listId
+                val items = itemDao.getItemsForList(selectedListIdTemp)
+                operation = if (items.isEmpty()) {
+                    // If the selected list is empty, populate it with initial items
+                    initialList.forEach { item ->
+                        itemDao.insertItem(Item(name = item, listOwnerId = selectedListIdTemp))
+                    }
+                    LoadListOperation.POPULATE_EXISTING
+                } else {
+                    LoadListOperation.LOAD_EXISTING
+                }
+                // Fetch the items for the selected list
+                itemsForSelectedList = itemDao.getItemsForList(selectedListIdTemp)
+            }
+
+            // Switch to Main thread to update UI
+            withContext(Dispatchers.Main) {
+                when (operation) {
+                    LoadListOperation.CREATE_NEW -> {
+                        // Refresh the list to include the newly created one
+                        lists = itemListDao.getAllLists()
+                        selectedListId = lists.first().listId
+                    }
+                    LoadListOperation.POPULATE_EXISTING, LoadListOperation.LOAD_EXISTING -> {
+                        selectedListId = lists.first().listId
+                        itemList.clear()
+                        itemsForSelectedList?.let { itemList.addAll(it.map { item -> item.name }) }
                     }
                 }
-            } catch (e: Exception) {
-                Log.e("DatabaseError", "Error accessing database", e)
+                _listsLiveData.postValue(lists)
+                loadItemsForSelectedList()
+
             }
-            Log.d("Debug111", "After calling getAllLists")
+        } catch (e: Exception) {
+            Log.e("DatabaseError", "Error accessing database", e)
         }
     }
 

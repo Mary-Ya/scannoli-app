@@ -16,11 +16,11 @@ interface ItemListDao {
     @Query("SELECT * FROM ItemList")
     public fun getAllLists(): List<ItemList>
 
-    // Method to update an existing item list
-//    @Update
-//    suspend fun updateList(itemList: ItemList): Int
-//
-//    // Method to delete an existing item list
-//    @Delete
-//    suspend fun deleteList(itemList: ItemList): Int
+//     Method to update an existing item list
+    @Update
+    fun updateList(itemList: ItemList): Int
+
+    // Method to delete an existing item list
+    @Delete
+    fun deleteList(itemList: ItemList): Int
 }

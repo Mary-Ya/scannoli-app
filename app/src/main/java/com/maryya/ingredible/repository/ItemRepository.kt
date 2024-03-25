@@ -15,15 +15,15 @@ class ItemRepository(private val itemListDao: ItemListDao) {
         itemListDao.insertList(itemList)
     }
 
-//    // Update an existing item list
-//    suspend fun updateItemList(itemList: ItemList) {
-//        itemListDao.updateList(itemList)
-//    }
+    // Update an existing item list
+    suspend fun updateItemList(itemList: ItemList) {
+        itemListDao.updateList(itemList)
+    }
 
-    // Delete an item list
-//    suspend fun deleteItemList(itemList: ItemList) {
-//        itemListDao.deleteList(itemList)
-//    }
+//     Delete an item list
+    suspend fun deleteItemList(itemList: ItemList) {
+        itemListDao.deleteList(itemList)
+    }
 
     // Additional operations as needed...
 }

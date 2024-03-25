@@ -9,10 +9,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryya.ingredible.SharedViewModel
+import androidx.compose.runtime.livedata.observeAsState
+import com.maryya.ingredible.entity.Item
 
 @Composable
-fun SettingsScreen(viewModel: SharedViewModel) {
+fun SettingsScreen(viewModel: SharedViewModel = viewModel()) {
+    // Use observeAsState() for LiveData
+    val itemList by viewModel.itemsLiveData.observeAsState(initial = emptyList())
+
     var textInput by remember { mutableStateOf("") }
 
     Column(
@@ -29,7 +35,13 @@ fun SettingsScreen(viewModel: SharedViewModel) {
         FloatingActionButton(
             onClick = {
                 if (textInput.isNotBlank()) {
+                    // Update your logic to add to the database
+                    var item = Item(
+                        name = textInput,
+                        listOwnerId = 0,
+                    )
                     viewModel.updateList(textInput)
+                    // Assume this is your method to add an item
                     textInput = ""
                 }
             },
@@ -38,17 +50,22 @@ fun SettingsScreen(viewModel: SharedViewModel) {
             Icon(Icons.Filled.Add, contentDescription = "Add")
         }
 
+        if(itemList.isEmpty()) {
+            Text("List is empty")
+        }
+
         LazyColumn {
-            itemsIndexed(viewModel.itemList) { index, item ->
+            itemsIndexed(itemList) { index, item ->
+                // Adjust the UI representation as per your data class structure
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = item, modifier = Modifier.weight(1f).padding(8.dp))
+                    Text(text = item.name, modifier = Modifier.weight(1f).padding(8.dp)) // Assuming item.toString() returns the displayable text
 
                     IconButton(onClick = {
-                        // Remove item from the list
-                        viewModel.removeItemFromList(index)
+                        // Update your logic to remove from the database
+                        viewModel.removeItemFromList(item) // Adjust this method according to your ViewModel
                     }) {
                         Icon(Icons.Filled.Delete, contentDescription = "Remove")
                     }
