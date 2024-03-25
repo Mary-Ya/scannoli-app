@@ -49,8 +49,11 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             Log.d("Debug111", "Before calling getAllLists")
             try {
                 withContext(Dispatchers.IO) {
-                    val item = Item(name = newItem, listOwnerId=0)
+                    val item = Item(name = newItem, listOwnerId=selectedListId)
                     itemDao.insertItem(item) // Corrected method name
+                }
+                withContext(Dispatchers.Main) {
+                    loadItemsForSelectedList()
                 }
             } catch  (e: Exception) {
                 Log.e("DatabaseError", "Error accessing database", e)
