@@ -228,6 +228,15 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun updateItemListActiveState(itemList: ItemList, isActive: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        val updatedList = itemList.copy(isActive = isActive)
+        itemListDao.updateList(updatedList)
+        val updatedLists = itemListDao.getAllLists()
+        withContext(Dispatchers.Main) {
+            _listsLiveData.value = updatedLists
+        }
+    }
+
     init {
         loadList()
         initializeColorMap()

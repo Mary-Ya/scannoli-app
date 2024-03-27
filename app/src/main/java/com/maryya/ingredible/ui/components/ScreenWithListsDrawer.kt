@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.DrawerValue
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalDrawer
@@ -17,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -86,20 +88,33 @@ fun SheetContent(viewModel: SharedViewModel) {
             }
         }
         LazyColumn {
-            itemsIndexed(lists) { index, list ->
-                ListItemView(itemList = list)
+            itemsIndexed(lists) { _, itemList ->
+                ListItemView(itemList = itemList) { updatedList, isActive ->
+                    viewModel.updateItemListActiveState(updatedList, isActive)
+                }
             }
         }
     }
 }
 
 @Composable
-fun ListItemView(itemList: ItemList) {
-    Text(
-        text = itemList.name,
+fun ListItemView(itemList: ItemList, onActiveChanged: (ItemList, Boolean) -> Unit) {
+    Row(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth(),
-        style = MaterialTheme.typography.h6
-    )
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = itemList.isActive,
+            onCheckedChange = { isChecked: Boolean ->
+                onActiveChanged(itemList, isChecked)
+            }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = itemList.name,
+            style = MaterialTheme.typography.h6
+        )
+    }
 }
