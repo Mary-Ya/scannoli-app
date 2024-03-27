@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 
 @Entity
 data class ItemList(
-    @PrimaryKey(autoGenerate = true) val listId: Int,
-    val name: String // This could be the name of the list
+    @PrimaryKey(autoGenerate = true) val listId: Int = 0,
+    val name: String, // This could be the name of the list
+    var isActive: Boolean = true
 )

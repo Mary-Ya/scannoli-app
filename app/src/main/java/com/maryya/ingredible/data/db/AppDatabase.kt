@@ -11,7 +11,7 @@ import com.maryya.ingredible.data.entity.Item
 import com.maryya.ingredible.data.entity.ItemList
 import com.maryya.ingredible.data.migrations.Migrations
 
-@Database(entities = [Item::class, ItemList::class], version = 1)
+@Database(entities = [Item::class, ItemList::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
     abstract fun itemListDao(): ItemListDao

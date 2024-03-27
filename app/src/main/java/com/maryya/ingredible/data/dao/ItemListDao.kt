@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.maryya.ingredible.data.entity.ItemList
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemListDao {
@@ -23,4 +24,7 @@ interface ItemListDao {
     // Method to delete an existing item list
     @Delete
     fun deleteList(itemList: ItemList): Int
+
+    @Query("SELECT * FROM ItemList")
+    fun getAllListsFlow(): Flow<List<ItemList>>
 }

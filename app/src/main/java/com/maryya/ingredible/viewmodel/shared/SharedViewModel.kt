@@ -173,7 +173,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
             if (lists.isEmpty()) {
                 // If no lists in DB, create a new one and prepare its ID
-                val newListId = itemListDao.insertList(ItemList(name = "Default List", listId = 0))
+                val newListId = itemListDao.insertList(ItemList(name = "Default List", isActive = true))
                 operation = LoadListOperation.CREATE_NEW
                 // Since this is a new list, there are no items yet
                 itemsForSelectedList = null
@@ -214,6 +214,17 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             }
         } catch (e: Exception) {
             Log.e("DatabaseError", "Error accessing database", e)
+        }
+    }
+
+    fun addNewList(listName: String) = viewModelScope.launch(Dispatchers.IO) {
+        val newList = ItemList(name = listName, isActive = true)
+        val id = itemListDao.insertList(newList)
+        Log.d("SharedViewModel", "New list inserted with ID: $id")
+        // Fetch the latest lists to update LiveData
+        val updatedLists = itemListDao.getAllLists()
+        withContext(Dispatchers.Main) {
+            _listsLiveData.value = updatedLists
         }
     }
 
