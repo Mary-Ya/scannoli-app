@@ -1,4 +1,4 @@
-package com.maryya.ingredible
+package com.maryya.ingredible.viewmodel.shared
 
 import ItemRepository
 import android.app.Application
@@ -12,13 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.maryya.ingredible.db.AppDatabase
-import com.maryya.ingredible.entity.Item
-import com.maryya.ingredible.entity.ItemList
+import com.maryya.ingredible.data.db.AppDatabase
+import com.maryya.ingredible.data.entity.Item
+import com.maryya.ingredible.data.entity.ItemList
 import kotlinx.coroutines.flow.flow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -29,7 +28,6 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _listsLiveData = MutableLiveData<List<ItemList>>()
     val listsLiveData: LiveData<List<ItemList>> = _listsLiveData
-
 
     // LiveData to observe items
     private val _itemsLiveData = MutableLiveData<List<Item>>()

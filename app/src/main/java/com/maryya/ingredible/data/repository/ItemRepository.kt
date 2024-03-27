@@ -1,6 +1,5 @@
-import androidx.lifecycle.LiveData
-import com.maryya.ingredible.dao.ItemListDao
-import com.maryya.ingredible.entity.ItemList
+import com.maryya.ingredible.data.dao.ItemListDao
+import com.maryya.ingredible.data.entity.ItemList
 
 class ItemRepository(private val itemListDao: ItemListDao) {
 

@@ -1,3 +1,5 @@
+package com.maryya.ingredible.pages
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -10,9 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.maryya.ingredible.SharedViewModel
+import com.maryya.ingredible.viewmodel.shared.SharedViewModel
 import androidx.compose.runtime.livedata.observeAsState
-import com.maryya.ingredible.entity.Item
+import com.maryya.ingredible.data.entity.Item
 
 @Composable
 fun SettingsScreen(viewModel: SharedViewModel = viewModel()) {
@@ -35,13 +37,7 @@ fun SettingsScreen(viewModel: SharedViewModel = viewModel()) {
         FloatingActionButton(
             onClick = {
                 if (textInput.isNotBlank()) {
-                    // Update your logic to add to the database
-                    var item = Item(
-                        name = textInput,
-                        listOwnerId = 0,
-                    )
                     viewModel.updateList(textInput)
-                    // Assume this is your method to add an item
                     textInput = ""
                 }
             },

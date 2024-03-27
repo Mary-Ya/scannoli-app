@@ -1,6 +1,5 @@
-package com.maryya.ingredible
+package com.maryya.ingredible.viewmodel.shared
 
-import ItemRepository
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

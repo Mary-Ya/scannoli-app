@@ -1,4 +1,4 @@
-package com.maryya.ingredible
+package com.maryya.ingredible.ui.components
 
 import WordTriple
 import androidx.compose.foundation.background
@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.maryya.ingredible.viewmodel.shared.SharedViewModel
 
 @Composable
 fun WordPill(wordTriple: WordTriple, viewModel: SharedViewModel) {

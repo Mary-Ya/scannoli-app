@@ -25,9 +25,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.maryya.ingredible.SharedViewModel
-import com.maryya.ingredible.StatusVm
-import com.maryya.ingredible.WordPill
+import com.maryya.ingredible.viewmodel.shared.SharedViewModel
+import com.maryya.ingredible.ocr.OCRHandler
+import com.maryya.ingredible.ui.components.StatusVm
+import com.maryya.ingredible.ui.components.WordPill
 import kotlinx.coroutines.delay
 import kotlin.math.max
 import kotlin.math.min
@@ -104,7 +105,8 @@ fun CameraPreview(modifier: Modifier, isOCRActive: Boolean, viewModel: SharedVie
             }
         }
 
-    }}
+    }
+    }
 
     LaunchedEffect(isOCRActive) {
         ocrHandler.isActive = isOCRActive

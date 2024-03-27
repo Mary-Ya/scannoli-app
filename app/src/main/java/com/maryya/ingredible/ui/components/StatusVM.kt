@@ -1,4 +1,4 @@
-package com.maryya.ingredible
+package com.maryya.ingredible.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

@@ -1,17 +1,15 @@
-package com.maryya.ingredible.db
+package com.maryya.ingredible.data.db
 
-import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.maryya.ingredible.dao.ItemDao
-import com.maryya.ingredible.dao.ItemListDao
-import com.maryya.ingredible.entity.Item
-import com.maryya.ingredible.entity.ItemList
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import com.maryya.ingredible.data.dao.ItemDao
+import com.maryya.ingredible.data.dao.ItemListDao
+import com.maryya.ingredible.data.entity.Item
+import com.maryya.ingredible.data.entity.ItemList
+import com.maryya.ingredible.data.migrations.Migrations
 
 @Database(entities = [Item::class, ItemList::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
@@ -30,7 +28,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "item_database"
-                ) .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+                )
+                    .addMigrations(Migrations.MIGRATION_1_2) // Include migrations like this
+                    .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                     .fallbackToDestructiveMigration()
                     .enableMultiInstanceInvalidation()
                     .build()

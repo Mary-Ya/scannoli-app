@@ -1,4 +1,4 @@
-package com.maryya.ingredible.entity
+package com.maryya.ingredible.data.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey

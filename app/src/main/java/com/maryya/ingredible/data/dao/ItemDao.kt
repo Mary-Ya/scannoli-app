@@ -1,12 +1,11 @@
-package com.maryya.ingredible.dao
+package com.maryya.ingredible.data.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.maryya.ingredible.entity.Item
-import java.sql.RowId
+import com.maryya.ingredible.data.entity.Item
 
 
 @Dao

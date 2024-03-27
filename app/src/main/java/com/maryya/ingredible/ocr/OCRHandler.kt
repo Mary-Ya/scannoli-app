@@ -1,3 +1,5 @@
+package com.maryya.ingredible.ocr
+
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.camera.core.ImageAnalysis
@@ -19,7 +21,7 @@ class OCRHandler(private val executor: Executor, private val onTextRecognized: (
 
     @SuppressLint("UnsafeOptInUsageError")
     fun processImageProxy(imageProxy: ImageProxy) {
-        Log.d("OCRHandler", "Processing image, isActive: $isActive")
+        Log.d("com.maryya.ingredible.ocr.OCRHandler", "Processing image, isActive: $isActive")
 
         val currentTimestamp = System.currentTimeMillis()
         if (!isActive || (currentTimestamp - lastAnalyzedTimestamp) < analyzerDelay) {

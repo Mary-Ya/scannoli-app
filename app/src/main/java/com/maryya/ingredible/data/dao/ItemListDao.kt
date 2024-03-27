@@ -1,4 +1,4 @@
-package com.maryya.ingredible.dao
+package com.maryya.ingredible.data.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.maryya.ingredible.entity.ItemList
+import com.maryya.ingredible.data.entity.ItemList
 
 @Dao
 interface ItemListDao {
