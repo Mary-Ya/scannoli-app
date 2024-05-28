@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maryya.ingredible.viewmodel.shared.SharedViewModel
-import com.maryya.ingredible.data.entity.ItemList
+import com.maryya.ingredible.data.entity.IngredientList
 import kotlinx.coroutines.launch
 
 @Composable
@@ -98,7 +98,7 @@ fun SheetContent(viewModel: SharedViewModel) {
 }
 
 @Composable
-fun ListItemView(itemList: ItemList, onActiveChanged: (ItemList, Boolean) -> Unit) {
+fun ListItemView(itemList: IngredientList, onActiveChanged: (IngredientList, Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .padding(8.dp)

@@ -13,9 +13,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.maryya.ingredible.data.db.AppDatabase
-import com.maryya.ingredible.data.entity.Item
-import com.maryya.ingredible.data.entity.ItemList
-import kotlinx.coroutines.flow.flow
+import com.maryya.ingredible.data.entity.Ingredient
+import com.maryya.ingredible.data.entity.IngredientList
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,18 +25,13 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     private val itemDao = db.itemDao()
     private val itemListDao = db.itemListDao()
 
-    private val _listsLiveData = MutableLiveData<List<ItemList>>()
-    val listsLiveData: LiveData<List<ItemList>> = _listsLiveData
+    private val _listsLiveData = MutableLiveData<List<IngredientList>>()
+    val listsLiveData: LiveData<List<IngredientList>> = _listsLiveData
 
     // LiveData to observe items
-    private val _itemsLiveData = MutableLiveData<List<Item>>()
-    val itemsLiveData: LiveData<List<Item>> = _itemsLiveData
+    private val _itemsLiveData = MutableLiveData<List<Ingredient>>()
+    val itemsLiveData: LiveData<List<Ingredient>> = _itemsLiveData
 
-    fun insertItem(item: Item) = viewModelScope.launch(Dispatchers.IO) {
-        Log.d("AppDatabase", "Inserting item: ${item.name}")
-        itemDao.insertItem(item)
-        Log.d("AppDatabase", "Item inserted")
-    }
 
     val itemRepository = ItemRepository(itemListDao)
     // Example function to insert an item with logging
@@ -47,8 +41,8 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             Log.d("Debug111", "Before calling getAllLists")
             try {
                 withContext(Dispatchers.IO) {
-                    val item = Item(name = newItem, listOwnerId=selectedListId)
-                    itemDao.insertItem(item) // Corrected method name
+                    val ingredient = Ingredient(name = newItem, listOwnerId=selectedListId)
+                    itemDao.insertItem(ingredient)
                 }
                 withContext(Dispatchers.Main) {
                     loadItemsForSelectedList()
@@ -57,12 +51,6 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
                 Log.e("DatabaseError", "Error accessing database", e)
             }
         }
-    }
-
-    // Function to get items for a list, showing usage of the DAO within a ViewModel
-    fun getItemsForListFlow(listId: Int) = flow {
-        val items = itemDao.getItemsForList(listId) // Assuming this is a suspend function
-        emit(items)
     }
 
     var selectedListId by mutableStateOf(0)
@@ -99,22 +87,6 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         itemList.addAll(initialList)
     }
 
-    fun removeItemFromList(index: Int) {
-        viewModelScope.launch {
-            Log.d("Debug111", "Before calling getAllLists")
-            try {
-                withContext(Dispatchers.IO) {
-                    itemDao.deleteItem(Item(name = itemList.elementAt(index), listOwnerId = 0))
-                }
-                itemList.toMutableList().apply {
-                    removeAt(index)
-                }}
-            catch  (e: Exception) {
-                Log.e("DatabaseError", "Error accessing database", e)
-            }
-        }
-    }
-
     private var colorList = mutableStateListOf(
         Color(android.graphics.Color.parseColor("#645AD4")), // Violet
         Color(android.graphics.Color.parseColor("#7F00CC")), // Purple
@@ -135,8 +107,8 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     fun getColorForItem(item: String): Color {
         return itemColorMap[item] ?: Color.Gray // Default color if not found
     }
-    private val _allItemLists = MutableLiveData<List<ItemList>>()
-    val allItemLists: LiveData<List<ItemList>> = _allItemLists
+    private val _allItemLists = MutableLiveData<List<IngredientList>>()
+    val allItemLists: LiveData<List<IngredientList>> = _allItemLists
 
     enum class LoadListOperation {
         CREATE_NEW,
@@ -155,9 +127,9 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun removeItemFromList(item: Item) = viewModelScope.launch(Dispatchers.IO) {
+    fun removeItemFromList(ingredient: Ingredient) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            itemDao.deleteItem(item)
+            itemDao.deleteItem(ingredient)
             loadItemsForSelectedList() // Refresh items list
         } catch (e: Exception) {
             Log.e("DatabaseError", "Error removing item", e)
@@ -169,11 +141,11 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
             var lists = itemListDao.getAllLists()
 
             val operation: LoadListOperation
-            val itemsForSelectedList: List<Item>?
+            val itemsForSelectedList: List<Ingredient>?
 
             if (lists.isEmpty()) {
                 // If no lists in DB, create a new one and prepare its ID
-                val newListId = itemListDao.insertList(ItemList(name = "Default List", isActive = true))
+                val newListId = itemListDao.insertList(IngredientList(name = "Default List", isActive = true))
                 operation = LoadListOperation.CREATE_NEW
                 // Since this is a new list, there are no items yet
                 itemsForSelectedList = null
@@ -184,7 +156,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
                 operation = if (items.isEmpty()) {
                     // If the selected list is empty, populate it with initial items
                     initialList.forEach { item ->
-                        itemDao.insertItem(Item(name = item, listOwnerId = selectedListIdTemp))
+                        itemDao.insertItem(Ingredient(name = item, listOwnerId = selectedListIdTemp))
                     }
                     LoadListOperation.POPULATE_EXISTING
                 } else {
@@ -218,7 +190,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun addNewList(listName: String) = viewModelScope.launch(Dispatchers.IO) {
-        val newList = ItemList(name = listName, isActive = true)
+        val newList = IngredientList(name = listName, isActive = true)
         val id = itemListDao.insertList(newList)
         Log.d("SharedViewModel", "New list inserted with ID: $id")
         // Fetch the latest lists to update LiveData
@@ -228,7 +200,7 @@ class SharedViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun updateItemListActiveState(itemList: ItemList, isActive: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateItemListActiveState(itemList: IngredientList, isActive: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         val updatedList = itemList.copy(isActive = isActive)
         itemListDao.updateList(updatedList)
         val updatedLists = itemListDao.getAllLists()

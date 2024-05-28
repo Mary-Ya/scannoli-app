@@ -7,11 +7,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.maryya.ingredible.data.dao.ItemDao
 import com.maryya.ingredible.data.dao.ItemListDao
-import com.maryya.ingredible.data.entity.Item
-import com.maryya.ingredible.data.entity.ItemList
+import com.maryya.ingredible.data.entity.Ingredient
+import com.maryya.ingredible.data.entity.IngredientList
 import com.maryya.ingredible.data.migrations.Migrations
 
-@Database(entities = [Item::class, ItemList::class], version = 2)
+@Database(entities = [Ingredient::class, IngredientList::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
     abstract fun itemListDao(): ItemListDao

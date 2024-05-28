@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(
     foreignKeys = [
         ForeignKey(
-            entity = ItemList::class,
+            entity = IngredientList::class,
             parentColumns = ["listId"],
             childColumns = ["listOwnerId"],
             onDelete = ForeignKey.CASCADE,
@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey
     ],
 )
 
-data class Item(
+data class Ingredient(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val listOwnerId: Int // This associates an Item with an ItemList

@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryya.ingredible.viewmodel.shared.SharedViewModel
 import androidx.compose.runtime.livedata.observeAsState
-import com.maryya.ingredible.data.entity.Item
 
 @Composable
 fun SettingsScreen(viewModel: SharedViewModel = viewModel()) {
